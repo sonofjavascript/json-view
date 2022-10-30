@@ -1,17 +1,17 @@
 <template>
   <HeaderBox />
-  <VisualizerBox />
+  <MainBox />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { HeaderBox, VisualizerBox } from "./components";
+import { HeaderBox, MainBox } from "./components";
 
 export default defineComponent({
   name: "App",
   components: {
     HeaderBox,
-    VisualizerBox,
+    MainBox,
   },
 });
 </script>
@@ -19,6 +19,7 @@ export default defineComponent({
 <style lang="scss">
 body {
   margin: 0;
+  background-color: $primary;
 }
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -28,9 +29,15 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  align-items: center;
+  color: $secondary;
 
   main {
     flex: 1;
+  }
+
+  .disabled {
+    background-color: $disabled;
   }
 
   h1,
