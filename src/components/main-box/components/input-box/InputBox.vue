@@ -2,7 +2,7 @@
 import { useAction, useGetter } from "@/core/store";
 import { defineComponent, ref, watch } from "vue";
 import useDragAndDrop from "./use-drag-drop";
-import { JSON } from "@/modules/json/types";
+import type { JSON } from "@/modules/json/types";
 
 export default defineComponent({
   name: "InputJSON",
@@ -10,24 +10,22 @@ export default defineComponent({
     const currentJson = ref<string>("");
     const inputRef = ref<HTMLElement | null>(null);
     const jsonFile = useDragAndDrop(inputRef);
-    const json = useGetter<JSON>("json");
+    const jsonFormatted = useGetter<JSON>("jsonFormatted");
     const setJson = useAction<JSON>("setJson");
 
-    watch(json, (formattedJson) => {
-      currentJson.value = formattedJson;
+    watch(jsonFormatted, (jsonFormatted) => {
+      currentJson.value = jsonFormatted;
     });
 
     const updateJson = (value: string | null) => {
       if (!value) return;
 
-      let json;
       try {
-        json = JSON.parse(
+        const json = JSON.parse(
           value.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
         );
+        setJson(json);
       } catch (error) {}
-
-      setJson(json);
     };
 
     watch(currentJson, updateJson);

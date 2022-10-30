@@ -1,61 +1,49 @@
-import { App, reactive, UnwrapNestedRefs } from "vue";
+import { App, reactive } from "vue";
 
-interface Getters<S, T> {
-  [fnName: string]: (state: UnwrapNestedRefs<S>) => T;
-}
+import type { GlobalStore, Store, StoreContext } from "./types";
 
-interface Mutations<S, T> {
-  [fnName: string]: (state: UnwrapNestedRefs<S>, payload?: T) => void;
-}
-
-export interface StoreCtx<S, T> {
-  state: UnwrapNestedRefs<S>;
-  getters: Getters<S, T>;
-  mutations: Mutations<S, T>;
-}
-
-export interface GlobalStores<S, T> {
-  state: UnwrapNestedRefs<S>;
-  getters: Getters<S, T>;
-  mutations: Mutations<S, T>;
-  stores: { [store: string]: StoreCtx<S, T> };
-}
-
-export interface Store<S, T> {
-  name: string;
-  namespaced?: boolean;
-  state: S;
-  getters: Getters<S, T>;
-  mutations: Mutations<S, T>;
-}
-
-function createStore<S extends object, T>({
+function createStore<T extends object, S>({
   state,
   getters,
   mutations,
-}: Store<S, T>): StoreCtx<S, T> {
-  const storeState = reactive<S>(state || {});
-  return { state: storeState, getters, mutations };
+  actions,
+}: Store<T, S>): StoreContext<T, S> {
+  const storeState = reactive<T>(state || {});
+  return { state: storeState, getters, mutations, actions };
 }
 
-export default <S extends object, T>(stores: Store<S, T>[]) => ({
+export default <T extends object, S>(stores: Store<T, S>[]) => ({
   install: (app: App) => {
     app.config.globalProperties.$globalStore = stores.reduce(
-      (accStores, rawStore) => {
-        const store = createStore(rawStore);
-        if (rawStore.namespaced) {
-          accStores.stores[rawStore.name] = store;
-        } else {
-          accStores.state = reactive({
-            ...(Object.assign({}, accStores.state) as S),
-            ...(Object.assign({}, store.state) as S),
-          });
-          accStores.getters = { ...accStores.getters, ...store.getters };
-          accStores.mutations = { ...accStores.mutations, ...store.mutations };
+      (global, store) => {
+        if (store.namespaced) {
+          return {
+            ...global,
+            stores: {
+              ...global.stores,
+              [store.name]: createStore(store),
+            },
+          };
         }
-        return accStores;
+
+        return {
+          ...global,
+          root: createStore({
+            name: "",
+            state: {
+              ...(Object.assign({}, global.root.state) as T),
+              ...store.state,
+            },
+            getters: { ...global.root.getters, ...store.getters },
+            mutations: { ...global.root.mutations, ...store.mutations },
+            actions: { ...global.root.actions, ...store.actions },
+          }),
+        };
       },
-      { getters: {}, state: {}, stores: {} } as GlobalStores<S, T>
+      {
+        root: { state: {}, getters: {}, mutations: {}, actions: {} },
+        stores: {},
+      } as GlobalStore<T, S>
     );
   },
 });

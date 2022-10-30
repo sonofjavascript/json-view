@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "format-json": "^1.0.3",
     "json-formatter-js": "^2.3.4",
     "vue": "^3.2.13"
   },
