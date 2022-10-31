@@ -2,44 +2,43 @@ import { UnwrapNestedRefs } from "vue";
 
 type State<T> = UnwrapNestedRefs<T>;
 
-interface Getters<T, S> {
-  [getter: string]: (state: State<T>) => S;
+interface Getters {
+  [getter: string]: <T, S>(state: State<T>) => S;
 }
 
-export interface Mutations<T, S> {
-  [mutation: string]: (state: State<T>, payload?: S) => void;
+export interface Mutations {
+  [mutation: string]: <T, S>(state: State<T>, payload?: S) => void;
 }
 
-export interface ActionContext<T, S> {
+export interface ActionContext<T> {
   state: State<T>;
-  dispatch: (action: string, payload: S) => Promise<void> | void;
-  commit: (mutation: string, payload: S) => void;
+  dispatch: <S>(action: string, payload: S) => Promise<void> | void;
+  commit: <S>(mutation: string, payload: S) => void;
 }
 
-export interface Actions<T, S> {
-  [action: string]: (
-    actionCtx: ActionContext<T, S>,
+interface Actions {
+  [action: string]: <T, S>(
+    ctx: ActionContext<T>,
     payload?: S
   ) => Promise<void> | void;
 }
 
-export interface StoreContext<T, S> {
-  state: State<T>;
-  getters: Getters<T, S>;
-  mutations: Mutations<T, S>;
-  actions: Actions<T, S>;
-}
-
-export interface GlobalStore<T, S> {
-  root: StoreContext<T, S>;
-  stores: { [store: string]: StoreContext<T, S> };
-}
-
-export interface Store<T, S> {
+export interface Store<T> {
   name: string;
-  namespaced?: boolean;
+  state: State<T>;
+  getters: Getters;
+  mutations: Mutations;
+  actions: Actions;
+}
+
+export interface Stores<T> {
+  [store: string]: Store<T>;
+}
+
+export interface StoreArg<T> {
+  name: string;
   state: T;
-  getters: Getters<T, S>;
-  mutations: Mutations<T, S>;
-  actions: Actions<T, S>;
+  getters: Getters<T>;
+  mutations: Mutations<T>;
+  actions: Actions<T>;
 }

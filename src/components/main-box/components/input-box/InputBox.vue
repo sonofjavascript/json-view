@@ -10,8 +10,8 @@ export default defineComponent({
     const currentJson = ref<string>("");
     const inputRef = ref<HTMLElement | null>(null);
     const jsonFile = useDragAndDrop(inputRef);
-    const jsonFormatted = useGetter<JSON>("jsonFormatted");
-    const setJson = useAction<JSON>("setJson");
+    const jsonFormatted = useGetter<JSON>("json", "jsonFormatted");
+    const setJson = useAction<JSON>("json", "setJson");
 
     watch(jsonFormatted, (jsonFormatted) => {
       currentJson.value = jsonFormatted;

@@ -1,29 +1,27 @@
 import { computed, getCurrentInstance, Ref } from "vue";
-import type { GlobalStore, StoreContext } from "./types";
+import type { Store } from "./types";
 
-function useStore<S = never, T = never>(
-  storeName?: string
-): StoreContext<S, T> {
+function getStore<T>(storeName: string): Store<T> {
   const appProps = getCurrentInstance()?.appContext.config.globalProperties;
   if (!appProps) throw new Error("Application is not instantiated");
 
-  const globalStore = appProps.$globalStore as GlobalStore<S, T>;
-
-  if (storeName) return globalStore.stores[storeName];
-  return globalStore.root;
+  console.log(appProps, storeName);
+  return appProps.$stores[storeName];
 }
 
-export function useGetter<T>(getter: string, storeName?: string): Ref<T> {
-  const store = useStore(storeName);
+export function useGetter<T>(storeName: string, getter: string): Ref<T> {
+  const store = getStore(storeName);
   return computed(() => store.getters[getter](store.state));
 }
 
 type ActionFn<T> = (payload?: T) => void;
-export function useAction<T extends undefined>(
-  action: string,
-  storeName?: string
+
+export function useAction<T = never>(
+  storeName: string,
+  action: string
 ): ActionFn<T> {
-  const store = useStore(storeName);
+  const store = getStore(storeName);
+
   function commit(mutationName: string, payload?: T) {
     store.mutations[mutationName](store.state, payload);
   }

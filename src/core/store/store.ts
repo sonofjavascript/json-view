@@ -1,49 +1,29 @@
 import { App, reactive } from "vue";
 
-import type { GlobalStore, Store, StoreContext } from "./types";
+import type { Stores, StoreArg, Store } from "./types";
 
-function createStore<T extends object, S>({
+function createStore<T extends object>({
+  name,
   state,
   getters,
   mutations,
   actions,
-}: Store<T, S>): StoreContext<T, S> {
+}: StoreArg<T>): Store<T> {
   const storeState = reactive<T>(state || {});
-  return { state: storeState, getters, mutations, actions };
+  return { name, state: storeState, getters, mutations, actions };
 }
 
-export default <T extends object, S>(stores: Store<T, S>[]) => ({
+export default <T extends object>(stores: StoreArg<T>[]) => ({
   install: (app: App) => {
-    app.config.globalProperties.$globalStore = stores.reduce(
-      (global, store) => {
-        if (store.namespaced) {
-          return {
-            ...global,
-            stores: {
-              ...global.stores,
-              [store.name]: createStore(store),
-            },
-          };
-        }
-
-        return {
-          ...global,
-          root: createStore({
-            name: "",
-            state: {
-              ...(Object.assign({}, global.root.state) as T),
-              ...store.state,
-            },
-            getters: { ...global.root.getters, ...store.getters },
-            mutations: { ...global.root.mutations, ...store.mutations },
-            actions: { ...global.root.actions, ...store.actions },
-          }),
-        };
-      },
-      {
-        root: { state: {}, getters: {}, mutations: {}, actions: {} },
-        stores: {},
-      } as GlobalStore<T, S>
+    app.config.globalProperties.$stores = stores.reduce(
+      (global, store) => ({
+        ...global,
+        stores: {
+          ...global.stores,
+          [store.name]: createStore(store),
+        },
+      }),
+      {} as Stores<T>
     );
   },
 });
